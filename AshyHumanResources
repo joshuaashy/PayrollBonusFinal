@@ -1,0 +1,407 @@
+//AUTHOR: Joshua Ashy
+//COURSE: CPT 187
+//CREATE DATE: Feb. 27, 2020
+//PURPOSE :Program is used to calculate bonus amounts for each
+//employee based on there bonus rate and amount of
+//sales they have. The return the total bonus amount 
+//for all employees.
+
+
+package edu.cpt187.ashy.finalexam;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Scanner;
+
+public class HumanResources 
+{
+	//declare and initialize constants
+	private final int RESET = 0;
+	private final int NOT_FOUND = -1;
+	private final int MAXIMUM_RECORDS = 200;
+
+	//declare non constants
+	private String[] employeeIDs = new String[MAXIMUM_RECORDS];
+	private String[] employeeNames = new String[MAXIMUM_RECORDS];
+	private double[] bonusPerSale = new double[MAXIMUM_RECORDS];
+	private int[] quantitySales = new int[MAXIMUM_RECORDS];
+	private double[] totalBonus = new double[MAXIMUM_RECORDS];
+	private int howMany = 0;
+	private int searchedIndex = 0;
+	private int recordCount = 0;
+	private int fileCount = 0;
+	private int filesFound = 0;
+	private int searchCount = 0;
+	private int searchesFound = 0;
+
+	//constructor
+	public HumanResources()
+	{
+
+	}
+
+	//set method
+	//set product 
+	public void setLoadArrays(String borrowedFileName)
+	{
+		//this is done to done so you don't get an exception error
+		//reset recordCount 
+		recordCount = RESET;
+		searchCount = RESET;
+		searchesFound = RESET;
+		fileCount++;
+		try
+		{
+			Scanner inputFile = new Scanner(new FileInputStream(borrowedFileName));
+			filesFound++;
+			while(inputFile.hasNext() == true && recordCount < MAXIMUM_RECORDS)
+				//load data file
+			{
+				employeeIDs[recordCount] = inputFile.next();
+				employeeNames[recordCount] = inputFile.next();
+				bonusPerSale[recordCount] = inputFile.nextDouble();
+				recordCount++;
+
+
+			}//end while
+
+			//close Scanner
+			inputFile.close();
+
+			//sort file
+			setBubbleSort();
+
+		}//end try
+
+		catch (IOException ex)
+		//no file found
+		{
+			recordCount = NOT_FOUND;
+
+
+		}//end catch
+
+	}//end setLoadArray
+
+	//set method
+	public void setLoadArrays(String borrowedFileName, int borrowedSize)
+	{
+		recordCount = RESET;
+
+
+		try
+		{
+			Scanner inputFile = new Scanner(new FileInputStream(borrowedFileName));
+
+			while(inputFile.hasNext() == true && recordCount < MAXIMUM_RECORDS && recordCount < borrowedSize)
+			{
+				employeeIDs[recordCount] = inputFile.next();
+				employeeNames[recordCount] = inputFile.next();
+				bonusPerSale[recordCount] = inputFile.nextDouble();
+				quantitySales[recordCount] = inputFile.nextInt();
+				totalBonus[recordCount] = inputFile.nextDouble();
+				recordCount++;
+
+			}
+
+			//close the file
+			inputFile.close();
+
+			//sort file
+			setBubbleSort();
+		}//end try
+
+
+		catch(IOException ex)
+		{
+			recordCount = NOT_FOUND;
+		}
+
+	}//end of setLoadArrays
+
+	//set Method bubbleSort
+	public void setBubbleSort()
+	{
+		int last = 0;
+		int index = 0;
+		boolean swap;
+
+		last = recordCount - 1;
+
+		while(last > RESET)
+		{
+			index = RESET;
+			swap = false;
+
+			while(index < last)
+			{
+				if (Integer.parseInt(employeeIDs[index]) > Integer.parseInt(employeeIDs[index + 1]))
+				{
+					setSwapArrayElements(index);
+					swap = true;
+				}//end of if
+
+				index++;
+			}//end of while
+
+			if (swap == false)
+			{
+				last = RESET;
+			}
+			else
+			{
+				last = last - 1;
+			}
+		}//end of while
+
+	}//end of setBubbleSort
+
+	//set method SwapArrayElements
+	public void setSwapArrayElements(int borrowedIndex)
+	{
+		int localIntHolder = 0;
+		String localStringHolder = "";
+		double localDoubleHolder = 0.0;
+
+		//Employee IDs swap
+		localStringHolder = employeeIDs[borrowedIndex + 1];
+		employeeIDs[borrowedIndex + 1] = employeeIDs[borrowedIndex];
+		employeeIDs[borrowedIndex] = localStringHolder;
+
+		//Employee names swap
+		localStringHolder = employeeNames[borrowedIndex + 1];
+		employeeNames[borrowedIndex + 1] = employeeNames[borrowedIndex];
+		employeeNames[borrowedIndex] = localStringHolder;
+
+		//bonusPerSale swap
+		localDoubleHolder = bonusPerSale[borrowedIndex + 1];
+		bonusPerSale[borrowedIndex + 1] = bonusPerSale[borrowedIndex];
+		bonusPerSale[borrowedIndex] = localDoubleHolder;
+
+
+		//quantitySales swap
+		localIntHolder = quantitySales[borrowedIndex + 1];
+		quantitySales[borrowedIndex + 1] = quantitySales[borrowedIndex];
+		quantitySales[borrowedIndex] = localIntHolder;
+
+		//totalBonus Swap
+		localDoubleHolder = totalBonus[borrowedIndex + 1];
+		totalBonus[borrowedIndex + 1] = totalBonus[borrowedIndex];
+		totalBonus[borrowedIndex] = localDoubleHolder;
+	}//end of setSwapArrayElements
+
+	//set method
+	//set searchIndex 
+	public void setSearchedIndex(int borrowedID)
+	{
+
+		searchedIndex = getBinSearch(borrowedID);
+		searchCount++;
+		if(searchedIndex > NOT_FOUND)
+		{
+			searchesFound++;
+		}
+
+	}
+
+	//set method
+	//set howMany
+	public void setHowMany(int borrowedHowMany)
+	{
+		howMany = borrowedHowMany;
+	}
+
+
+	//Method getBinSearch
+	public int getBinSearch(int borrowedBorrowedID)
+	{
+		//DECLARE/INITIALIZE local variables
+		int first = 0;
+		int last = 0;
+		int mid = 0;
+		boolean found;
+
+
+		last = recordCount - 1;
+
+
+		found = false;
+
+		//RUN while
+		while (first <= last && found == false)
+		{
+			//SET THE VALUE OF MID
+			mid = (first + last) / 2;
+
+			//USE AN IF/ELSE STATEMENT TO DETERMINE IF THE
+			//TARGETED ID WAS FOUND
+			if(Integer.parseInt(employeeIDs[mid]) == borrowedBorrowedID)
+			{
+				found = true;
+			} //END OF IF
+			else
+			{
+				//for if target is not found
+				if(Integer.parseInt(employeeIDs[mid]) < borrowedBorrowedID)
+				{
+					first = mid + 1;
+				} 
+				else
+				{
+					last = mid - 1;
+				} //ENDelse
+			} //END else
+
+		} //END run while
+
+
+		if(found == false)
+		{
+			mid = NOT_FOUND;
+		} 
+
+		//Return mid
+		return mid;
+	} //END of getSearchResults
+
+
+	//VR Method getHowMany
+	public int getHowMany()
+	{
+		return howMany;
+	}
+
+	//get search index
+	public int getSearchedIndex()
+	{
+		return searchedIndex;
+	}
+
+	//VR Method get recordCount
+	public int getRecordCount()
+	{
+		return recordCount;
+	}
+
+	//VR Method get Employee ID
+	public String getEmployeeID()
+	{
+		return employeeIDs[searchedIndex];
+	}
+
+	//VR Method get employee name
+	public String getEmployeeName()
+	{
+		return employeeNames[searchedIndex];
+	}
+
+	//VR Method get bonus per sale
+	public double getBonusPerSale()
+	{
+		return bonusPerSale[searchedIndex];
+	}
+
+	//VR Method get Bonus total 
+	public double getBonusTotal()
+	{
+		return	 howMany * getBonusPerSale();
+		
+	}
+
+	//VR Method get employee IDs
+	public String[] getEmployeeIDs()
+	{
+		return employeeIDs;
+	}
+
+	//VR Method get employee names
+	public String[] getEmployeeNames()
+	{
+		return employeeNames;
+	}
+
+	//VR Method get bonus's per sale
+	public double[] getBonusPerSales()
+	{
+		return bonusPerSale;
+	}
+
+	//VR Method get quantity of sales
+	public int[] getQuantitySales()
+	{
+		return quantitySales;
+	}
+
+	//VR Method get bonus totals
+	public double[] getBonusTotals()
+	{
+		return  totalBonus;
+	}
+
+	//VR Method get file count
+	public int getFileCount()
+	{
+		return fileCount;
+	}
+
+	//VR Method get files found
+	public int getFilesFound()
+	{
+		return filesFound;
+	}
+
+	//VR Method get files not found
+	public int getFilesNotFound()
+	{
+		return fileCount - filesFound;
+	}
+
+
+	//VR Method get search count
+	public int getSearchCount()
+	{
+		return searchCount;
+	}
+
+	//VR Method get searches found
+	public int getSearchesFound()
+	{
+		return searchesFound;
+	}
+
+	//VR Method get searches not found
+	public int getSearchesNotFound()
+	{
+		return searchCount - searchesFound;
+	}
+
+
+	//VR Method get Written Quantity Sales
+	public int getRecordWriterQuantitySales()
+	{
+		return recordCount;
+	}
+
+	//VR Method get Written record of bonus sum totals
+	public double getRecordWriterTotalBonus()
+	{
+		double localTotal = 0;
+		int localIndex =0;
+		while (localIndex < totalBonus.length &&
+				totalBonus[localIndex] != 0)
+		{
+			localTotal += totalBonus[localIndex];
+			localIndex++;
+
+		}
+
+		return localTotal;
+
+
+	}
+
+
+
+
+
+}//END Human Resources class
