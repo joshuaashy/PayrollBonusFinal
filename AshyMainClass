@@ -1,0 +1,480 @@
+//AUTHOR: Joshua Ashy
+//COURSE: CPT 187
+//CREATE DATE: Feb. 27, 2020
+//PURPOSE :Program is used to calculate bonus amounts for each
+//employee based on there bonus rate and amount of
+//sales they have. The return the total bonus amount 
+//for all employees.
+
+
+package edu.cpt187.ashy.finalexam;
+
+import java.util.Scanner;
+
+
+public class MainClass
+{
+
+	//declare and initialize constants
+	public static final String[] MAIN_MENU_OPTIONS = {"Load a file", "Quit"};
+	public static final String[] SEARCH_MENU_OPTIONS = {"Search for an ID","Return to Main Menu"};
+	public static final String[] BONUS_MENU_OPTIONS = {"Process Bonus", "Return to the Search Menu"};
+	public static final String MASTER_FILE_NAME = "MasterRecordsFile.dat";
+
+	public static void main(String[] args)
+	{
+
+		//declare and initialize local variable
+		String userName = "";
+		char menuSelection = ' ';
+
+		HumanResources myCurrentRecord = new HumanResources();
+		RecordWriter writtenRecords = new RecordWriter(MASTER_FILE_NAME);
+		Scanner input = new Scanner(System.in);
+
+		//display Welcome banner
+		displayWelcomeBanner();
+
+		//get userName
+		userName = getUserName(input);
+
+		//validate menu selection
+		menuSelection = validateMenuSelection(input);
+
+		//run while quit is not selected
+		while(menuSelection !='Q')
+		{
+			//get the file name
+			myCurrentRecord.setLoadArrays(getFileName(input));
+
+			//determine if file was successfully loaded
+			if(myCurrentRecord.getRecordCount() <= 0)
+			{
+
+				//let user know that file could not be found
+				displayFileError(userName);
+			}
+			//if file is found
+			else
+			{
+				//tell user file was found
+				displayFileFound();
+
+				//validate menu option for search menu
+				menuSelection = validateSearchSelection(input);
+
+				//run while return to main menu is not selected
+				while(menuSelection !='B')
+				{
+					//validate user input for search item
+					myCurrentRecord.setSearchedIndex(validateSearchID(input));
+
+					//if search index comes back as -1 the file was not found
+					if(myCurrentRecord.getSearchedIndex() < 0)
+					{
+						//display that file was not found
+						displaySearchResults();
+					}
+					else
+					{
+						//display overload  product info if found
+						displaySearchResults(myCurrentRecord.getEmployeeID(),
+								myCurrentRecord.getEmployeeName(),
+								myCurrentRecord.getBonusPerSale());
+
+						//validate Bonus menu Selection
+						menuSelection = validateBonusSelection(input);
+
+						//
+						if(menuSelection == 'A')
+						{
+							myCurrentRecord.setHowMany(validateHowMany(input));
+
+							writtenRecords.setSaveOneRecord(myCurrentRecord.getEmployeeID(),
+									myCurrentRecord.getEmployeeName(),
+									myCurrentRecord.getBonusPerSale(),
+									myCurrentRecord.getHowMany(),
+									myCurrentRecord.getBonusTotal());
+
+							displayRequestProcessed(userName,
+									myCurrentRecord.getEmployeeID(),
+									myCurrentRecord.getHowMany(),
+									myCurrentRecord.getBonusTotal());
+
+						}
+
+
+					}
+					//validate menu option for search menu modify LVC
+					menuSelection = validateSearchSelection(input);
+
+				}//end while not B
+
+			}
+
+			//if search was successful then search count will be greater than 0
+			if(myCurrentRecord.getSearchCount() > 0)
+			{
+				//display count for searches
+				displaySearchReport(userName,
+						myCurrentRecord.getSearchCount(),
+						myCurrentRecord.getSearchesFound(),
+						myCurrentRecord.getSearchesNotFound());
+
+			}
+
+			//validate menu selection modify LVC
+			menuSelection = validateMenuSelection(input);
+
+		}//end while not Q
+
+		//if number of files is > 0
+		if(writtenRecords.getRecordCount() > 0)
+		{
+
+			//display what files where found or not
+			displayFileReport(userName,
+					myCurrentRecord.getFileCount(),
+					myCurrentRecord.getFilesFound(),
+					myCurrentRecord.getFilesNotFound());
+
+			//OPen record from master file
+			myCurrentRecord.setLoadArrays(writtenRecords.getFileName(),
+					myCurrentRecord.getRecordCount());
+			
+			//display final report from Record Writer
+			displayFinalReport(userName,
+					myCurrentRecord.getEmployeeIDs(),
+					myCurrentRecord.getEmployeeNames(),
+					myCurrentRecord.getBonusPerSales(),
+					myCurrentRecord.getQuantitySales(),
+					myCurrentRecord.getBonusTotals(),
+					myCurrentRecord.getRecordWriterQuantitySales(),
+					myCurrentRecord.getRecordWriterTotalBonus(),
+					writtenRecords.getRecordCount());
+		}
+
+		//display farewell message
+		displayFarewellMessage();
+
+
+
+		//close scanner
+		input.close();
+
+	}//end main
+
+
+	//void method
+	// welcome the user and let them know what program does
+	public static void displayWelcomeBanner()
+	{
+		System.out.println("\n-----------------------------------------------------------");
+		System.out.printf("%45s\n", "Welcome to Payroll Bonus Calculator");
+		System.out.printf("%s\n", "This Program will allow you to load different employee");
+		System.out.printf("%s\n", "records and search them using a employee ID.");
+		System.out.printf("%s\n", "With employee ID it will return the employee name and");
+		System.out.printf("%s\n", "bonus rate and calculate the bonus earned for quanity of");
+		System.out.printf("%s\n", "sales and total bonus for all employee searches. ");
+
+	} // END WelcomeBanner()
+
+	//VR method
+	public static String getUserName(Scanner borrowedInput)
+	{	
+		//Ask User for First Name
+		System.out.print("\nPlease tell us your first name:\n");
+		//return local variable userName
+		return borrowedInput.next();
+	}
+
+	//main menu display method
+	public static void displayMainMenu()
+	{
+
+		System.out.println("\n~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ");
+		System.out.println(" Main Menu");
+		System.out.println("~~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~ ~~~ ~~~ ~~~ ~~~~ ~~~");
+		System.out.printf("%-15s%-10s\n", "[A] " , MAIN_MENU_OPTIONS[0]);
+		System.out.printf("%-15s%-10s\n", "[Q] " , MAIN_MENU_OPTIONS[1]);
+		System.out.print("Please put your selction here:\n");
+	}
+
+	//VR Method
+	public static char validateMenuSelection(Scanner borrowedInput)
+	{
+		char localMenuSelection = ' ';
+		displayMainMenu();
+		localMenuSelection = borrowedInput.next().toUpperCase().charAt(0);
+		while(localMenuSelection !='A' && localMenuSelection != 'Q')
+		{
+			System.out.println("\nThat is a invalid selection please choose from menu.");
+			displayMainMenu();
+			localMenuSelection = borrowedInput.next().toUpperCase().charAt(0);
+		}
+		return localMenuSelection;
+	}
+
+	//void method
+	public static void displaySearchMenu()
+	{
+
+		System.out.println("\n~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ");
+		System.out.println(" Search Menu");
+		System.out.println("~~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~ ~~~ ~~~ ~~~ ~~~~ ~~~");
+		System.out.printf("%-15s%-10s\n", "[A] " , SEARCH_MENU_OPTIONS[0]);
+		System.out.printf("%-15s%-10s\n", "[B] " , SEARCH_MENU_OPTIONS[1]);
+		System.out.print("Please put your selction here:\n");
+	}
+
+
+	//VR Method
+	public static char validateSearchSelection(Scanner borrowedInput)
+	{
+		char localMenuSelection = ' ';
+		displaySearchMenu();
+		localMenuSelection = borrowedInput.next().toUpperCase().charAt(0);
+		while(localMenuSelection !='A' && localMenuSelection != 'B')
+		{
+			System.out.println("\nThat is a invalid selection please choose from menu.");
+			displaySearchMenu();
+			localMenuSelection = borrowedInput.next().toUpperCase().charAt(0);
+		}
+		return localMenuSelection;
+	}
+
+	//void method
+	public static void displayBonusMenu()
+	{
+
+		System.out.println("\n~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ");
+		System.out.println(" Bonus Processing Menu");
+		System.out.println("~~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~ ~~~ ~~~ ~~~ ~~~~ ~~~");
+		System.out.printf("%-15s%-10s\n", "[A] " , BONUS_MENU_OPTIONS[0]);
+		System.out.printf("%-15s%-10s\n", "[B] " , BONUS_MENU_OPTIONS[1]);
+		System.out.print("Please put your selction here:\n");
+	}
+
+
+	//VR Method
+	public static char validateBonusSelection(Scanner borrowedInput)
+	{
+		char localMenuSelection = ' ';
+		displayBonusMenu();
+		localMenuSelection = borrowedInput.next().toUpperCase().charAt(0);
+		while(localMenuSelection !='A' && localMenuSelection != 'B')
+		{
+			System.out.println("\nThat is a invalid selection please choose from menu.");
+			displayBonusMenu();
+			localMenuSelection = borrowedInput.next().toUpperCase().charAt(0);
+		}
+		return localMenuSelection;
+	}
+
+	//ask user what product file to load to program
+	//VR method
+	public static String getFileName(Scanner borrowedInput)
+	{
+		String localFileName = "";
+		System.out.printf("\n%s", "Please enter full file name with extension?\n");
+		localFileName = borrowedInput.next();
+		return localFileName;
+	}
+
+	//display file was not found
+	private static void displayFileError(String borrowedUserName)
+	{
+		System.out.printf("\n%s%s%s\n","We're sorry, ",borrowedUserName," that File was not found.");
+		System.out.println("Please check the File and try again.");
+	}
+
+	//display file not found
+	private static void displayFileFound()
+	{
+		System.out.println("\n\nFile was successfuly loaded.");
+		System.out.println("Continue with loaded file.");
+	}
+	
+	//display search ID for input
+	public static void displaySearchID()
+	{
+		System.out.println("\n\n*******************************************");
+		System.out.println("Please enter the ID desired.");
+		System.out.println("*******************************************");
+		System.out.print("\nEnter your selection here: ");
+	}
+
+	//validate that search ID is valid
+	private static int validateSearchID(Scanner borrowedInput)
+	{
+
+		int localID = 0;
+		String localProduct ="";
+		displaySearchID();
+		localProduct = borrowedInput.next();
+		localID = Integer.parseInt(localProduct);
+
+		while (localID < 0)
+		{
+			System.out.println("\nInvalid selection,");
+
+			displaySearchID();
+			localProduct = borrowedInput.next();
+			localID = Integer.parseInt(localProduct);
+
+
+		}
+
+		return localID;
+
+	}
+
+	//display search results not found
+	//void method
+	public static void displaySearchResults()
+	{
+		System.out.println();
+		System.out.println("\n~~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~ ~~~ ~~~ ~~~ ~~~~ ~~~\n");
+		System.out.println("Search Results Report");
+		System.out.println("~~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~ ~~~ ~~~ ~~~ ~~~~ ~~~\n");
+		System.out.printf("%s\n", "ID not found");
+	}
+
+	//display search results not found
+	//void method
+	public static void displaySearchResults(String borrowedEmployeeID, String borrowedEmployeeName, double borrowedBonusPerSale )
+
+	{
+		System.out.println();
+		System.out.println("~~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~ ~~~ ~~~ ~~~ ~~~~ ~~~");
+		System.out.println("Search Results Report");
+		System.out.println("~~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~ ~~~ ~~~ ~~~ ~~~~ ~~~\n");
+		System.out.printf("%n%-8s\t%-25s\t%-6s\n","ID", "NAME", "BONUS");
+		System.out.printf("%n%-8s\t%-25s\t%s%-6.2f\n", borrowedEmployeeID, borrowedEmployeeName,"$",borrowedBonusPerSale);
+	}
+	//Void method
+	public static void displaySalesQty()
+	{
+
+		System.out.println("\nPlease enter the quantity of");
+		System.out.print("sales that where made:");
+	}
+
+	//VR Method
+	//Validate How many
+	public static int validateHowMany(Scanner borrowedInput) 
+	{
+		int localHowMany = 0;
+		displaySalesQty();
+		localHowMany = borrowedInput.nextInt();
+		System.out.println();
+		while ( localHowMany <= 0)
+		{
+			System.out.println("Quanity of sales cannot be less 0.\n");
+			displaySalesQty();
+			localHowMany = borrowedInput.nextInt();
+			System.out.println();
+		}
+		return localHowMany;
+	}
+
+	//display requested was processed
+	public static void displayRequestProcessed(String borrowedUserName,
+			String borrowedEmployeeID,
+			int borrowedHowMany,
+			double borrowedBonusTotal)
+	{
+		System.out.println("_______________________________________________________");
+		System.out.println(borrowedUserName + ", your order has been proccessed:" );
+		System.out.printf("%n%-25s\n","Request Confimation:");
+		System.out.printf("%n%-8s\t%3s\t%7s", "ID", "SALES QTY","TOTAL BONUS");
+		System.out.printf("%n%-4s\t%13d\t%10s%-8.2f\n", borrowedEmployeeID, borrowedHowMany,"$",borrowedBonusTotal);
+
+	}
+
+	//display search results not found and found
+	//void method
+	public static void displaySearchReport(String borrowedUserName, int borrowedSearchCount, int borrowedSearchesFound, int borrowedSearchesNotFound )
+
+	{
+		System.out.println();
+		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+		System.out.println(borrowedUserName + ", the folowing is your search report:" );
+		System.out.println("~~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~ ~~~ ~~~ ~~~ ~~~~ ~~~");
+		System.out.println("Search Count Report");
+		System.out.println("~~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~ ~~~ ~~~ ~~~ ~~~~ ~~~");
+		System.out.printf("%n%-15s\t%-15s\t%-15s\n","SEARCH COUNT", "IDs FOUND", "IDs NOT FOUND");
+		System.out.printf("%n%-15d\t%-15d\t%-15d\n", borrowedSearchCount, borrowedSearchesFound, borrowedSearchesNotFound);
+	}
+
+	//display search files not found and found
+	//void method
+	public static void displayFileReport(String borrowedUserName, int borrowedFileCount, int borrowedFilesFound, int borrowedFilesNotFound )
+
+	{
+		System.out.println();
+		System.out.println("\n-----------------------------------------------------------");
+		System.out.println(borrowedUserName + ", the folowing is your File report:\n" );
+		System.out.println("~~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~ ~~~ ~~~ ~~~ ~~~~ ~~~");
+		System.out.println("File Proccessing Report");
+		System.out.println("~~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~ ~~~ ~~~ ~~~ ~~~~ ~~~\n");
+		System.out.printf("%n%-15s\t%-15s\t%-15s\n","FILE COUNT", "FILEs FOUND", "FILEs NOT FOUND");
+		System.out.printf("%n%-15d\t%-15d\t%-15d\n", borrowedFileCount, borrowedFilesFound, borrowedFilesNotFound);
+	}
+
+	//display Final Report
+	//void method
+	private static void displayFinalReport(String borrowedUserName,
+			String[] borrowedEmployeeIDs, 
+			String[] borrowedEmployeeNames, 
+			double[] borrowedTotalSales,
+			int[] borrowedQuantitySales, 
+			double[] borrowedBonusTotals,
+			int borrowedRecordWriterQuantitySales,
+			double borrowedRecordWriterTotalBonus,
+			int borrowedGetRecordCount) 
+
+	{
+		//DECLARE/INITIALIZE LOCAL VARIABLE
+		int localIndex = 0;
+
+		System.out.println("\n-----------------------------------------------------------");
+		System.out.println("\nFINAL REPORT");
+		System.out.println("\nALL NEW RECORDS:");
+
+		//USE A RUN-WHILE LOOP TO GET WRITTEN ORDERS
+
+		System.out.printf("%-9s%-18s%-15s%-8s%-10s\n","ID","NAME:","SALES","QTY","BONUS:");
+		while (localIndex < borrowedQuantitySales.length &&
+				borrowedQuantitySales[localIndex] != 0)
+		{
+
+			System.out.printf("%-8s", borrowedEmployeeIDs[localIndex]);
+			System.out.printf("%-16s",  borrowedEmployeeNames[localIndex]);
+			System.out.printf("%4s%-8.2f", "$", borrowedTotalSales[localIndex]);
+			System.out.printf("%8d", borrowedQuantitySales[localIndex]);
+			System.out.printf("%6s%-9.2f\n", " $", borrowedBonusTotals[localIndex]);
+
+			localIndex++;
+		} //END OF RUN-WHILE LOOP
+		System.out.printf("\n%-12s%15s\n", "ID COUNT", "PAYROLL TOTAL");
+		System.out.printf("%5d%11s%-8.2f\n",borrowedRecordWriterQuantitySales,"$", borrowedRecordWriterTotalBonus);
+
+
+	}
+
+	//Display farewell message
+	public static void displayFarewellMessage()
+	{
+		System.out.println("");
+		System.out.println("\nThank you for choosing Payroll Bonus Calculator ");
+		System.out.println("We are here to provide you with a user friendly  ");
+		System.out.println("platform for all your program needs.");
+
+	}//End display farewell message
+
+
+
+
+
+}//END MAIN CLASS
