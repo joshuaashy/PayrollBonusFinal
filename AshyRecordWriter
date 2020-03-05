@@ -1,0 +1,80 @@
+//AUTHOR: Joshua Ashy
+//COURSE: CPT 187
+//CREATE DATE: Feb. 27, 2020
+//PURPOSE :Program is used to calculate bonus amounts for each
+//employee based on there bonus rate and amount of
+//sales they have. The return the total bonus amount 
+//for all employees.
+
+
+
+package edu.cpt187.ashy.finalexam;
+
+import java.io.PrintWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
+public class RecordWriter
+{
+
+	//declare and initialize class CONSTANTS
+	private final int NOT_FOUND = -1;
+	private final int RESET_VALUE = 0;
+
+	//declare and initialize all nonCONSTANTS 
+	private String masterFileName = "";
+	private int recordCount = 0;
+
+	//OrderWriter class Constructor
+	public RecordWriter(String borrowedFileName)
+	{
+		masterFileName = borrowedFileName;
+	}//end of class constructor
+
+	//set method to write record for processed information
+	public void setSaveOneRecord(String borrowedEmployeeID, 
+			String borrowedEmployeeName, 
+			double borrowedBonusPerSale, 
+			int borrowedQuantitySales, 
+			double borrowedTotalBonus)
+	{
+		recordCount = RESET_VALUE;
+		try
+		{
+			//write new record
+			PrintWriter filePW = new PrintWriter (new FileWriter(masterFileName, true));
+			filePW.printf("%s\t%s\t%8.2f\t%d\t%8.2f\r", borrowedEmployeeID, 
+					borrowedEmployeeName, borrowedBonusPerSale, 
+					borrowedQuantitySales, borrowedTotalBonus);
+
+			recordCount++;
+			//close the file
+			filePW.close();
+
+		}//END of try
+
+		catch(IOException ex)
+		{
+			recordCount = NOT_FOUND;
+
+		}//END of catch 
+
+	}//end of setWriterOrder
+
+	//get method
+	//return masterFileName
+	public String getFileName()
+	{
+		return masterFileName;
+	}//end of getFileName
+
+	//get method
+	//return the record count
+	public int getRecordCount()
+	{
+		return recordCount;
+	}
+
+
+
+}//end RecordWriter class
